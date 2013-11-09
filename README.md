@@ -1,0 +1,4 @@
+LibTakamin
+==========
+
+MYLIB for .NET
