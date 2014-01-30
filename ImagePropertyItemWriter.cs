@@ -21,6 +21,18 @@ namespace LibTakamin.Drawing.Imaging {
         /// </summary>
         Software = 0x0131,
         /// <summary>
+        /// X,Y方向ピクセル数の単位
+        /// </summary>
+        PixelUnit = 0x5110,     //PropertyTagTypeByte, Count==1
+        /// <summary>
+        /// 単位当たりのX方向ピクセル数
+        /// </summary>
+        PixelPerUnitX = 0x5111, //PropertyTagTypeLong, Count==1
+        /// <summary>
+        /// 単位当たりのY方向ピクセル数
+        /// </summary>
+        PixelPerUnitY = 0x5112, //PropertyTagTypeLong, Count==1
+        /// <summary>
         /// 画像の著作権者
         /// </summary>
         Copyright = 0x8298,
@@ -34,13 +46,15 @@ namespace LibTakamin.Drawing.Imaging {
         UserComment = 0x9286,
     }
     /// <summary>
-    /// PropertyItemのType値
+    /// Specifies the type of an image metadata value.
+    /// (http://msdn.microsoft.com/en-us/library/windows/desktop/ms534414(v=vs.85).aspx)
     /// </summary>
-    public enum PropertyTypes {
-        /// <summary>
-        /// ASCII文字列
-        /// </summary>
-        ASCII = 2,
+    public enum PropertyTagType : short {
+        PropertyTagTypeByte = 1,
+        PropertyTagTypeASCII = 2,
+        PropertyTagTypeShort = 3,
+        PropertyTagTypeLong = 4,
+        PropertyTagTypeSLONG = 7,
     }
     /// <summary>
     /// 画像ファイルへメタデータ（PropertyItem）を追加するためのクラス。
@@ -110,7 +124,32 @@ namespace LibTakamin.Drawing.Imaging {
         /// <returns></returns>
         public ImagePropertyItemWriter SetPropertyItem(PropertyTags id, string value) {
             byte[] bytes = ImagePropertyItemWriter.StringToByteArray(value);
-            SetPropertyItem(id, PropertyTypes.ASCII, bytes.Length, bytes);
+            SetPropertyItem(id, PropertyTagType.PropertyTagTypeASCII, bytes.Length, bytes);
+            return this;
+        }
+        /// <summary>
+        /// byte値のプロパティを設定する。
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ImagePropertyItemWriter SetPropertyItem(PropertyTags id, byte value) {
+            byte[] bytes = new byte[] { value };
+            SetPropertyItem(id, PropertyTagType.PropertyTagTypeByte, bytes.Length, bytes);
+            return this;
+        }
+        /// <summary>
+        /// unsigned long の値を設定する。
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public ImagePropertyItemWriter SetPropertyItem(PropertyTags id, uint value) {
+            byte[] bytes = new byte[sizeof(ulong)];
+            for (int i = 0; i < sizeof(ulong); i++) {
+                bytes[i] = (byte)((value >> (i * 8)) & 0xff);
+            }
+            SetPropertyItem(id, PropertyTagType.PropertyTagTypeLong, bytes.Length, bytes);
             return this;
         }
         /// <summary>
@@ -121,7 +160,9 @@ namespace LibTakamin.Drawing.Imaging {
         /// <param name="len"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        private ImagePropertyItemWriter SetPropertyItem(PropertyTags id, PropertyTypes type, int len, byte[] value) {
+        private ImagePropertyItemWriter SetPropertyItem(
+            PropertyTags id, PropertyTagType type, int len, byte[] value)
+        {
             propSeed.Id = (int)id;
             propSeed.Type = (short)type;
             propSeed.Len = len;
@@ -174,7 +215,7 @@ namespace LibTakamin.Drawing.Imaging {
             pitembuf.Append(prop.Type.ToString()).Append(",")
                 .Append("Len:").Append(prop.Len.ToString()).Append(",")
                 .Append("Value:");
-            if (prop.Type == (short)PropertyTypes.ASCII) {
+            if (prop.Type == (short)PropertyTagType.PropertyTagTypeASCII) {
                 char[] ca = new char[prop.Value.Length - 1];
                 for (int j = 0; j < prop.Value.Length - 1; j++) {
                     ca[j] = (char)prop.Value[j];
