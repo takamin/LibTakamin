@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
 using System.Configuration;
+using System.Drawing;
 
 namespace LibTakamin.Configuration {
     public class AppSettingsWrapper {
@@ -46,6 +47,38 @@ namespace LibTakamin.Configuration {
                 return dflValue;
             }
             return int.Parse(s);
+        }
+        /// <summary>
+        /// 設定情報読み出し
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="dflValue"></param>
+        /// <returns></returns>
+        protected double GetAppSettingDouble(string key, double dflValue) {
+            string s = appSettings[key];
+            if (s == null) {
+                return dflValue;
+            }
+            return double.Parse(s);
+        }
+        protected Color GetAppSettingColor(string key, Color dflValue) {
+            string s = appSettings[key];
+            if (s == null) {
+                return dflValue;
+            }
+            return LibTakamin.Web.CssUtil.ParseColor(s);
+            //Color c = dflValue;
+            //char head = s[0];
+            //if (head == '#') {
+            //    int argb = (Int32)((UInt32)Convert.ToInt32(s.Substring(1), 16) | 0xff000000);
+            //    c = Color.FromArgb(argb);
+            //} else if ('0' <= head && head <= '9') {
+            //    int argb = (Int32)((UInt32)int.Parse(s) | 0xff000000);
+            //    c = Color.FromArgb(argb);
+            //} else {
+            //    c = Color.FromName(s);
+            //}
+            //return c;
         }
     }
 }
